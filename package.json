@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/prebuild-check.mjs && prisma migrate deploy && next build",
+  "build": "node scripts/prebuild-check.mjs && node scripts/run-migrate-or-skip.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
