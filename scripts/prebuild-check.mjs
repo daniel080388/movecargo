@@ -46,4 +46,15 @@ if (missing.length) {
   process.exit(1);
 }
 
+// Extra: bloquear DATABASE_URL que aponte para localhost/127.*/::1 em CI/Vercel
+if ((process.env.VERCEL || process.env.CI) && process.env.DATABASE_URL) {
+  const url = process.env.DATABASE_URL;
+  const lower = url.toLowerCase();
+  if (lower.includes('localhost') || lower.includes('127.0.0.1') || lower.includes('::1')) {
+    console.error('\n[BUILD CONFIG ERROR] Em Vercel/CI, DATABASE_URL não pode apontar para localhost.');
+    console.error('Configure uma base de dados acessível pela Vercel (Railway/Neon/Supabase) e atualize a DATABASE_URL.');
+    process.exit(1);
+  }
+}
+
 console.log('[prebuild-check] OK — Variáveis obrigatórias presentes.');
