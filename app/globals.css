@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "mapbox-gl/dist/mapbox-gl.css";
+
+/* Design tokens (CSS variables) for light/dark themes */
+:root {
+  --background: #f1f5f9; /* slate-100 */
+  --foreground: #0f172a; /* slate-900 */
+  --muted: #475569;      /* slate-600 */
+  --card: #ffffff;       /* white */
+  --border: #e5e7eb;     /* gray-200 */
+  --primary: #3b82f6;    /* blue-500 (cinzento-azulado agradável) */
+  --primary-foreground: #ffffff;
+  --success: #16a34a;    /* green-600 */
+  --warning: #f59e0b;    /* amber-500 */
+  --danger: #dc2626;     /* red-600 */
+}
+
+.dark {
+  --background: #0b1320;           /* escuro azulado */
+  --foreground: #e2e8f0;           /* slate-200 */
+  --muted: #94a3b8;                /* slate-400 */
+  --card: #0f172a;                 /* slate-900 */
+  --border: #1f2937;               /* slate-800 */
+  --primary: #60a5fa;              /* blue-400 */
+  --primary-foreground: #0b1320;
+}
+
+@layer base {
+  html, body {
+    height: 100%;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11"; /* nicer default typography */
+  }
+}
+
+@layer components {
+  .input {
+    /* Explicit properties instead of @apply to avoid Tailwind @apply resolution errors in dev */
+    width: 100%;
+    border: 1px solid #d1d5db; /* gray-300 */
+    border-radius: 0.375rem; /* rounded-md */
+    padding-left: 0.75rem; /* px-3 */
+    padding-right: 0.75rem; /* px-3 */
+    padding-top: 0.5rem; /* py-2 */
+    padding-bottom: 0.5rem; /* py-2 */
+  }
+  .input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.25); /* approximate focus:ring-2 focus:ring-blue-500 */
+  }
+  .marker-green {
+    background-image: url('https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png');
+    background-size: cover; width: 30px; height: 30px; border-radius: 50%;
+    cursor: pointer; filter: hue-rotate(90deg);
+  }
+  .marker-red {
+    background-image: url('https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png');
+    background-size: cover; width: 30px; height: 30px; border-radius: 50%;
+    cursor: pointer; filter: hue-rotate(0deg);
+  }
+  .star-rating { direction: rtl; display: inline-block; }
+  .star-rating input[type=radio] { display: none; }
+  .star-rating label { color: #ddd; font-size: 24px; padding: 0 3px; cursor: pointer; }
+  .star-rating input[type=radio]:checked ~ label { color: #ffc107; }
+  .star-rating label:hover, .star-rating label:hover ~ label { color: #ffc107; }
+}
+
+@layer utilities {
+  .bg-background { background-color: var(--background); }
+  .text-foreground { color: var(--foreground); }
+  .text-muted { color: var(--muted); }
+  .bg-card { background-color: var(--card); }
+  .border-default { border-color: var(--border); }
+  .btn { display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 0.5rem; padding: 0.5rem 0.875rem; font-weight: 600; }
+  .btn-primary { background-color: var(--primary); color: var(--primary-foreground); }
+  .btn-primary:hover { filter: brightness(0.95); }
+  .btn-outline { border: 1px solid var(--border); color: var(--foreground); }
+  .btn-outline:hover { background-color: rgba(148,163,184,0.12); }
+  .card { background-color: var(--card); border: 1px solid var(--border); border-radius: 0.75rem; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .container-page { max-width: 1200px; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
+  .text-balance { text-wrap: balance; }
+}

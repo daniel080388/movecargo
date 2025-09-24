@@ -1,0 +1,178 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  EMPRESA
+  TRANSPORTADORA
+}
+
+enum StatusProposta {
+  PENDENTE
+  ACEITA
+  RECUSADA
+}
+
+model User {
+  id                       Int       @id @default(autoincrement())
+  name                     String
+  email                    String    @unique
+  password                 String
+
+  // 🌍 Localização do usuário (base para cálculo de distância)
+  latitude                 Float?
+  longitude                Float?
+
+  role                     Role
+
+  // 🌐 Preferências
+  defaultLocale            String    @default("pt")   // Idioma padrão
+  notificationPreferences  Json?                      // Preferências de notificações (ex: e-mail, push, sms)
+  theme                    String?                    // Tema (claro, escuro, sistema)
+  searchRadius             Int?                       // Raio de busca em km (ex: 100)
+  stripeCustomerId         String?                    // Stripe Customer id (opcional, criada quando o user inicia checkout)
+
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  // 🔗 Relacionamentos
+  cargas                   Carga[]    @relation("EmpresaCargas")
+  propostas                Proposta[] @relation("MotoristaPropostas")
+  avaliacoesEnviadas      Avaliacao[] @relation("AvaliacaoFrom")
+  avaliacoesRecebidas     Avaliacao[] @relation("AvaliacaoTo")
+  subscriptions            Subscription[]
+}
+
+model Carga {
+  id            Int       @id @default(autoincrement())
+  titulo        String
+  descricao     String
+  origem        String
+  pesoKg        Float?
+  tipoCaminhao  String?
+  comprimento   Float?
+  largura       Float?
+  altura        Float?
+  volume        String?
+  meiaCarga     Boolean?   @default(false)
+  expresso      Boolean?   @default(false)
+  dataInicio    DateTime?
+  dataFim       DateTime?
+  multiDestino  Boolean?   @default(false)
+
+  empresaId     Int
+
+  // 🌍 Localização da carga
+  latitude      Float?
+  longitude     Float?
+
+  // destinos relacionais (vários pontos de descarga)
+  destinos      Destino[]
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // 🔗 Relacionamentos
+  empresa       User       @relation("EmpresaCargas", fields: [empresaId], references: [id])
+  propostas     Proposta[]
+}
+
+model Destino {
+  id        Int     @id @default(autoincrement())
+  cidade    String
+  latitude  Float
+  longitude Float
+  ordem     Int     // ordem na sequência de destinos
+
+  cargaId   Int
+  carga     Carga   @relation(fields: [cargaId], references: [id])
+}
+
+model Proposta {
+  id           Int            @id @default(autoincrement())
+  valor        Int
+  mensagem     String
+  status       StatusProposta @default(PENDENTE)
+  contactsReleased Boolean?   @default(false)
+
+  cargaId      Int
+  motoristaId  Int
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // 🔗 Relacionamentos
+  carga        Carga          @relation(fields: [cargaId], references: [id])
+  // Relation kept as 'MotoristaPropostas' for now to avoid widespread refactor; semantic is 'Transportadora'
+  motorista    User           @relation("MotoristaPropostas", fields: [motoristaId], references: [id])
+}
+
+model Avaliacao {
+  id         Int      @id @default(autoincrement())
+  fromUserId Int
+  toUserId   Int
+  rating     Int      // 0..5
+  comentario String?
+  createdAt  DateTime @default(now())
+
+  fromUser   User     @relation("AvaliacaoFrom", fields: [fromUserId], references: [id])
+  toUser     User     @relation("AvaliacaoTo", fields: [toUserId], references: [id])
+}
+
+// Billing models (fase 2)
+model Plan {
+  id          Int      @id @default(autoincrement())
+  stripeId    String   @unique
+  name        String
+  description String?
+  priceCents  Int
+  currency    String   @default("eur")
+  active      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  planId       Int
+  stripeSubId  String   @unique
+  status       String
+  currentPeriodEnd DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id])
+  plan         Plan     @relation(fields: [planId], references: [id])
+}
+
+// Support / Help chat persistence for IA support
+model SupportConversation {
+  id         Int              @id @default(autoincrement())
+  sessionId  String           @unique
+  userId     Int?             // optional link to User when known
+
+  messages   SupportMessage[]
+
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model SupportMessage {
+  id               Int                  @id @default(autoincrement())
+  conversationId   Int
+  role             String               // 'user' | 'bot' | 'system'
+  text             String
+  createdAt        DateTime             @default(now())
+
+  conversation     SupportConversation  @relation(fields: [conversationId], references: [id])
+}

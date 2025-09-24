@@ -1,0 +1,22 @@
+[
+  {
+    "id": "faq_1",
+    "question": "Como crio uma nova carga?",
+    "answer": "Vá ao painel da empresa → Nova Carga e preencha os campos obrigatórios (título, origem, destino, peso). Depois clique em Publicar."
+  },
+  {
+    "id": "faq_2",
+    "question": "Como aceito uma proposta?",
+    "answer": "Na página da carga, abra a aba Propostas e clique em Aceitar na proposta desejada. Isso enviará uma notificação ao motorista."
+  },
+  {
+    "id": "faq_3",
+    "question": "Como posso cancelar a minha subscrição?",
+    "answer": "Vá a Empresa → Billing e clique em Cancelar Subscrição. Atualmente o cancelamento é feito localmente no ambiente de desenvolvimento."
+  },
+  {
+    "id": "faq_4",
+    "question": "Como reporto um problema?",
+    "answer": "Use o formulário de suporte na secção Contacto ou envie um email para suporte@movecargo.local com o título e uma descrição detalhada do problema."
+  }
+]

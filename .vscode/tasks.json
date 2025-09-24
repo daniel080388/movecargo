@@ -1,0 +1,64 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start dev then wait+send webhook then check subscriptions",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-NonInteractive",
+				"-Command",
+				"Start-Job -ScriptBlock { npm run dev } | Out-Null; Start-Sleep -Seconds 4; node scripts/wait-and-send-webhook.mjs; node scripts/checkSubscriptions.mjs"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run Jest API tests for propostas and motorista",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-NonInteractive",
+				"-Command",
+				"$env:NODE_ENV='test'; npx jest tests/api/propostas.mutate.test.ts tests/api/motorista.propostas.test.ts --runInBand --detectOpenHandles --silent"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run Jest API tests (no env)",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-NonInteractive",
+				"-Command",
+				"npx.cmd jest tests/api/propostas.mutate.test.ts tests/api/motorista.propostas.test.ts --runInBand --detectOpenHandles --silent"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Start dev then wait+send webhook then check subscriptions",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-NonInteractive",
+				"-Command",
+				"Start-Job -ScriptBlock { npm run dev } | Out-Null; Start-Sleep -Seconds 4; node scripts/wait-and-send-webhook.mjs; node scripts/checkSubscriptions.mjs"
+			],
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}
