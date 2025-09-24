@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import fs from 'fs';
 import path from 'path';
 
-const USE_DB_IDEMPOTENCY = process.env.USE_DB_IDEMPOTENCY === 'true';
+const USE_DB_IDEMPOTENCY = process.env.USE_DB_IDEMPOTENCY === 'true' || process.env.VERCEL === '1';
 const PROCESSED_FILE = process.env.STRIPE_PROCESSED_FILE
   ? path.resolve(process.env.STRIPE_PROCESSED_FILE)
   : path.resolve(process.cwd(), 'data', 'stripe-processed-events.json');
@@ -56,9 +56,8 @@ function markProcessed(id: string) {
   }
 }
 
-// Optional: DB-backed idempotency for serverless runtimes
+// Ensure table exists (defensive for local/test); production will create via Prisma migration
 async function ensureProcessedTable() {
-  // Postgres: create table if not exists with unique constraint on eventId
   await prisma.$executeRaw`
     CREATE TABLE IF NOT EXISTS "StripeProcessedEvent" (
       id SERIAL PRIMARY KEY,
@@ -70,13 +69,12 @@ async function ensureProcessedTable() {
 
 async function hasProcessedDb(id: string) {
   await ensureProcessedTable();
-  const rows = await prisma.$queryRaw<any[]>`SELECT 1 as one FROM "StripeProcessedEvent" WHERE "eventId" = ${id} LIMIT 1`;
+  const rows = await prisma.$queryRaw<any[]>`SELECT 1 FROM "StripeProcessedEvent" WHERE "eventId" = ${id} LIMIT 1`;
   return rows.length > 0;
 }
 
 async function markProcessedDb(id: string) {
   await ensureProcessedTable();
-  // ON CONFLICT DO NOTHING to keep idempotent
   await prisma.$executeRaw`INSERT INTO "StripeProcessedEvent" ("eventId") VALUES (${id}) ON CONFLICT ("eventId") DO NOTHING`;
 }
 

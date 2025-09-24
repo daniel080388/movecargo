@@ -176,3 +176,10 @@ model SupportMessage {
 
   conversation     SupportConversation  @relation(fields: [conversationId], references: [id])
 }
+
+// Stripe webhook idempotency store (serverless-safe)
+model StripeProcessedEvent {
+  id        Int      @id @default(autoincrement())
+  eventId   String   @unique
+  createdAt DateTime @default(now())
+}
