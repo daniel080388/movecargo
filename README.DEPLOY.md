@@ -11,13 +11,16 @@ This repo is a Next.js App Router app (TypeScript) with a PostgreSQL database vi
 - Output directory: `.next`
 - Install command: `npm install`
 
-### Variáveis de ambiente (Vercel → Settings → Environment Variables)
-Set these for Production (and Preview if you want preview deployments to work):
+### Variáveis de Ambiente (Vercel → Settings → Environment Variables)
+
+ATENÇÃO: O build corre `prisma migrate deploy` antes de `next build`, por isso a variável `DATABASE_URL` é OBRIGATÓRIA no ambiente da Vercel. Sem ela o build falha imediatamente (verificamos isto com `scripts/prebuild-check.mjs`).
+
+Configure, no mínimo, em Production (e em Preview se usar deploys de PR):
 
 - NEXT_PUBLIC_APP_URL = https://movecargo.eu (ou o seu domínio customizado)
 - NEXT_PUBLIC_MAPBOX_TOKEN = <your_mapbox_public_token>
 - JWT_SECRET = <a strong secret for JWT>
-- DATABASE_URL = <PostgreSQL connection string from Railway/Neon/etc>
+- DATABASE_URL = <PostgreSQL connection string de Railway/Neon/Supabase/etc>
 - STRIPE_SECRET_KEY = sk_live_...
 - STRIPE_WEBHOOK_SECRET = whsec_...
 - STRIPE_PROCESSED_FILE = ./data/stripe-processed-events.json (local only; see Stripe notes below)
@@ -31,25 +34,25 @@ URL do webhook Stripe em produção:
 
 Notas importantes para Vercel:
 - Do NOT rely on writing to the filesystem in serverless functions. The current Stripe webhook uses `STRIPE_PROCESSED_FILE` for idempotency (file-based). This works locally, but is not reliable on serverless.
-  - Production recommendation: store processed event IDs in your database (a simple `stripe_event` table with unique constraint on `event_id`) or Redis. Update `/app/api/payments/webhook/route.ts` accordingly before going live.
+  - Recomendação para Produção: guardar os event IDs na base de dados (tabela `stripe_event` com unique em `event_id`) ou Redis. Atualize `/app/api/payments/webhook/route.ts` antes de ir live.
 - API routes run on the Node.js runtime by default. Keep it (don’t switch this route to Edge) to ensure body parsing and HMAC work as expected.
 
 ## 2) Base de Dados (PostgreSQL em Railway/Neon/Supabase)
 
-This project’s Prisma schema uses `provider = "postgresql"`, so prefer Railway, Neon or Supabase for Postgres. PlanetScale is MySQL and would require a schema/provider change.
+O Prisma está configurado com `provider = "postgresql"`, por isso prefira Railway, Neon ou Supabase para Postgres. PlanetScale é MySQL e exigiria alterar o provider e o schema.
 
 Passos (ex.: Railway):
 - Create a new PostgreSQL database.
 - Copy the `DATABASE_URL` from Railway and add it to Vercel envs.
 - Apply schema migrations from your local machine (recommended):
-  1) Ensure `DATABASE_URL` is set locally to the production URL (temporary for migration).
-  2) Run `npx prisma migrate deploy` to apply migrations.
-  3) Optionally seed if needed (design your production seed carefully).
+  1) Garanta `DATABASE_URL` local temporariamente apontada à BD de produção.
+  2) Execute `npx prisma migrate deploy` para aplicar migrações.
+  3) Opcional: fazer seed com cautela (dados de produção!).
 - Alternatively, add a deploy step in your CI/CD that runs `prisma migrate deploy` against the production DB.
 
-## 3) Ficheiros de ambiente local
+## 3) Ficheiros de Ambiente Local
 
-For local development create a `.env.local` with values like:
+Para desenvolvimento local, crie `.env.local` com algo como:
 
 ```
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -66,27 +69,27 @@ REDIS_URL=
 OPENAI_API_KEY=
 ```
 
-For reference, `.env.production` (if you keep one locally for manual builds) should mirror the variables configured in Vercel.
+Se mantiver `.env.production` local para builds manuais, espelhe as variáveis configuradas na Vercel.
 
-## 4) Stripe: teste vs produção
+## 4) Stripe: Teste vs Produção
 
-- Use Stripe CLI or the provided scripts (`scripts/sendTestWebhook*.mjs`) only in dev.
-- In production, Stripe will call your Vercel URL. Ensure:
+- Use Stripe CLI ou os scripts (`scripts/sendTestWebhook*.mjs`) apenas em desenvolvimento.
+- Em produção, a Stripe chamará a URL na Vercel. Garanta:
   - STRIPE_SECRET_KEY (live)
   - STRIPE_WEBHOOK_SECRET (from the production webhook endpoint)
   - Idempotency storage is not file-based (see note above).
 
-## 5) Verificações pós-deploy
+## 5) Verificações Pós-Deploy
 
 - Health endpoint: `GET /api/health` should return 200.
 - Auth: login, JWT stored client-side, protected endpoints work.
-- Map: Home and map pages render with Mapbox (requires NEXT_PUBLIC_MAPBOX_TOKEN).
+- Map: páginas de Home e Mapa renderizam com Mapbox (requer NEXT_PUBLIC_MAPBOX_TOKEN).
 - Stripe webhook: send a test event from Stripe dashboard; verify 200 and idempotency.
 
-## 6) Endurecimento opcional
+## 6) Endurecimento Opcional
 \
 \
-## 7) Ligar o domínio movecargo.eu
+## 7) Ligar o Domínio movecargo.eu
 
 1. Em Vercel, Project → Settings → Domains → Add: `movecargo.eu` e `www.movecargo.eu`.
 2. No seu registrador de domínio, atualize o DNS:
