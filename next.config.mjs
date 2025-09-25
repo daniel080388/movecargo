@@ -9,6 +9,9 @@ const nextConfig = {
     // Avoid blocking production builds due to ESLint. We run lint in CI separately.
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    optimizeCss: false, // 🚑 desativa lightningcss no build da Vercel
+  },
 };
 
 export default withNextIntl(nextConfig);
