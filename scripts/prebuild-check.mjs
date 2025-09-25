@@ -55,6 +55,12 @@ if ((process.env.VERCEL || process.env.CI) && process.env.DATABASE_URL) {
     console.error('Configure uma base de dados acessível pela Vercel (Railway/Neon/Supabase) e atualize a DATABASE_URL.');
     process.exit(1);
   }
+  try {
+    const u = new URL(url);
+    const host = u.hostname;
+    const port = u.port || '(default)';
+    console.log(`[prebuild-check] CI: DATABASE_URL aponta para ${host}:${port}`);
+  } catch {}
 }
 
 console.log('[prebuild-check] OK — Variáveis obrigatórias presentes.');

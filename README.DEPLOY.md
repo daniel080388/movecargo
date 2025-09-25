@@ -7,13 +7,18 @@ This repo is a Next.js App Router app (TypeScript) with a PostgreSQL database vi
 - Create a new Project from this GitHub repo.
 - Framework preset: Next.js
 - Node version: 20 (Project Settings → General → Node.js version)
-- Build command: `next build`
+- Build command: `npm run build`
 - Output directory: `.next`
 - Install command: `npm install`
 
 ### Variáveis de Ambiente (Vercel → Settings → Environment Variables)
 
-ATENÇÃO: O build corre `prisma migrate deploy` antes de `next build`, por isso a variável `DATABASE_URL` é OBRIGATÓRIA no ambiente da Vercel. Sem ela o build falha imediatamente (verificamos isto com `scripts/prebuild-check.mjs`).
+ATENÇÃO: O build corre via `npm run build` que chama `scripts/build.mjs`. Esse script:
+- faz verificação de envs obrigatórias (falha no CI se faltar `DATABASE_URL`),
+- executa `prisma migrate deploy` (falha no CI, avisa e segue apenas em dev local),
+- força o fallback WASM do Lightning CSS para evitar erros de binário nativo na Vercel.
+
+Portanto, garanta que o comando de build na Vercel é `npm run build` (não use `next build` diretamente), e que a variável `DATABASE_URL` está configurada. Sem ela o build falha imediatamente (por design).
 
 Configure, no mínimo, em Production (e em Preview se usar deploys de PR):
 
